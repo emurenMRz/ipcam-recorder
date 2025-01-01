@@ -1,0 +1,27 @@
+#video {
+	display: block;
+	margin: 0 auto;
+}
+#now-stream {
+	border: 1px solid silver;
+	border-radius: 4px;
+	margin: 1em 0;
+	text-align: center;
+	cursor: pointer;
+}
+#record dt {
+	border-bottom: 1px solid gray;
+}
+#record>dd>div {
+	display: inline-block;
+}
+
+.thumbnail {
+	display: block;
+	width: 160px;
+	height: 120px;
+	cursor: pointer;
+}
+.title {
+	font-family: monospace;
+}

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <title>HTTP Live Streaming Test</title>
+  <link rel="stylesheet" href="stream.css" type="text/css">
+  <script src="stream.js" defer async></script>
+</head>
+<body>
+  <video id="video" src="video/playlist.m3u8" width="640" height="480" controls></video>
+  <div id="now-stream">Current time</div>
+  <dl id="record"></dl>
+</body>
+</html>
