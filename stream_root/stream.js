@@ -1,3 +1,8 @@
+/**
+ * Set up the Video element in preparation for stream playback. 
+ * @param {string} id 
+ * @param {string} name 
+ */
 function playHLS(id, name) {
 	const video = document.getElementById(id);
 	if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -11,10 +16,30 @@ function playHLS(id, name) {
 	}
 }
 
+/**
+ * Prepare recordings for playback.
+ */
 function playRecord() {
 	playHLS('video', `video/${this.getAttribute('data-src')}`);
 }
 
+/**
+ * @typedef {Object} HourRecord
+ * @property {number} hour
+ * @property {string} path
+ * @property {string} thumb
+ */
+
+/**
+ * @typedef {Object} Record
+ * @property {number} date
+ * @property {Array<HourRecord>} hours
+ */
+
+/**
+ * Recording history by day.
+ * @param {Array<Record>} json 
+ */
 function buildRecord(json) {
 	const list = document.getElementById('record');
 	list.textContent = '';
@@ -26,7 +51,7 @@ function buildRecord(json) {
 		dt.textContent = `${Y}-${M}-${D}`;
 		list.appendChild(dt);
 
-		var dd = document.createElement('dd');
+		const dd = document.createElement('dd');
 		hours.sort((a, b) => b.hour - a.hour).forEach(({ thumb, path, hour }) => {
 			const thumbnail = document.createElement('img');
 			thumbnail.className = 'thumbnail';
@@ -51,7 +76,7 @@ addEventListener('load', () => {
 	now.click();
 
 	const updateRecord = () => {
-		fetch(`video/record.json?${(new Date()).getTime()}`)
+		fetch(`video/record.json?${Date.now()}`)
 			.then(r => r.json())
 			.then(buildRecord)
 			.catch(console.error);
@@ -59,4 +84,3 @@ addEventListener('load', () => {
 	};
 	updateRecord();
 });
-
