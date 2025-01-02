@@ -20,7 +20,7 @@ function playHLS(id, name) {
  * Prepare recordings for playback.
  */
 function playRecord() {
-	playHLS('video', `video/${this.getAttribute('data-src')}`);
+	playHLS('video', this.getAttribute('data-src'));
 }
 
 /**
