@@ -19,7 +19,7 @@ function buildRecord(json) {
 	const list = document.getElementById('record');
 	list.textContent = '';
 	json.sort((a, b) => b.date - a.date).forEach(({ date, hours }) => {
-		const mat = date.match(/^(?<Y>[0-9]{4})(?<M>[0-9]{2})(?<D>[0-9]{2})$/);
+		const mat = String(date).match(/^(?<Y>[0-9]{4})(?<M>[0-9]{2})(?<D>[0-9]{2})$/);
 		if (!mat) throw new Error(`unsupport date format: ${date}`);
 		const { Y, M, D } = mat.groups;
 		const dt = document.createElement('dt');
