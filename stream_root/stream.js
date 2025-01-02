@@ -45,7 +45,7 @@ function buildRecord(json) {
 	});
 }
 
-addEventListener('DOMContentLoaded', () => {
+addEventListener('load', () => {
 	const now = document.getElementById('now-stream');
 	now.addEventListener('click', () => playHLS('video', 'video/playlist.m3u8'));
 	now.click();
