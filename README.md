@@ -84,5 +84,5 @@ $ chmod 700 ${REPOSITORY_ROOT}/core_service/stream.pl
 ```
 
 ```crontab
-1 * * * * ${REPOSITORY_ROOT}/core_service/stream.pl
+*/1 * * * * ${REPOSITORY_ROOT}/core_service/stream.pl
 ```
