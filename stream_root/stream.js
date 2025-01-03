@@ -16,7 +16,7 @@
 	}
 
 	function playRecord() {
-		playHLS('video', 'video/' + this.getAttribute('data-src'));
+		playHLS('video', this.getAttribute('data-src'));
 	}
 
 	function buildRecord(json) {
