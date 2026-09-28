@@ -54,19 +54,23 @@ Internet, point your browser at http://www.perl.org/, the Perl Home Page.
 
 ## START IPCAM RECORDING
 
-`${REPOSITORY_ROOT}/core_service/stream.sh`を開いて、以下の変数に`TENVIS JPT3815W`のIPアドレスやアクセス用のユーザー名・パスワードを設定する。
+認証情報は環境変数として指定する。`TENVIS JPT3815W`のIPアドレスやアクセス用のユーザー名・パスワードを設定する。
 
-```sh
-HOST=[your IPCamera ip address:port]
-USER_ID=[your IPCamera user id]
-USER_PWD=[your IPCamera user password]
-```
+- `IPCAM_HOST` — カメラのIPアドレス:port
+- `IPCAM_USER` — カメラのユーザー名
+- `IPCAM_PWD` — カメラのパスワード
 
 スクリプトを実行するとffmpegがhls形式で動画を出力する。
 
 ```sh
+$ export IPCAM_HOST=[your IPCamera ip address:port]
+$ export IPCAM_USER=[your IPCamera user id]
+$ export IPCAM_PWD=[your IPCamera user password]
 $ sh ${REPOSITORY_ROOT}/core_service/stream.sh
 ```
+
+ffmpegのPIDは `/var/www/stream_root/video/ffmpeg.pid` に保存され、ログは `ffmpeg.log` へ出力される。
+再起動時は旧プロセスを安全に停止してから新規起動する。
 
 ## SETUP WEB UI
 
