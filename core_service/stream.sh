@@ -43,14 +43,21 @@ cd "${VIDEO_ROOT}" || {
 
 INPUT_URL="http://${IPCAM_HOST}/videostream.asf?user=${IPCAM_USER}&pwd=${IPCAM_PWD}"
 FONT_FILE=/usr/share/fonts/truetype/freefont/FreeSans.ttf
+VIDEO_FILTER="drawtext=text='%{localtime\:%F %T}':fontfile=${FONT_FILE}:fontcolor=white@1:fontsize=24:x=12:y=12"
 
 # ffmpegをバックグラウンドで起動し、ログをファイルへ出力
 nohup /usr/bin/ffmpeg -hide_banner -nostdin -loglevel warning \
     -i "${INPUT_URL}" \
-    -vf "drawtext=text='%{localtime\:%F %T}':fontfile=${FONT_FILE}:fontcolor=white@1:fontsize=24:x=12:y=12" \
-    -c:v h264_omx \
+    -fps_mode passthrough \
+    -vf "${VIDEO_FILTER}" \
+    -c:v libx264 \
+    -g 125 \
+    -c:a aac \
+    -b:a 24k \
+    -ar 8000 \
+    -ac 1 \
     -f hls -hls_time 5 -hls_list_size 120 -strftime 1 -strftime_mkdir 1 \
-    -hls_flags second_level_segment_index \
+    -hls_flags second_level_segment_index+independent_segments \
     -hls_segment_filename "%Y%m%d/%H/%M_%%03d.ts" \
     -movflags faststart \
     playlist.m3u8 \
