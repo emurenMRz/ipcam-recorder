@@ -2,10 +2,11 @@
 
 use strict;
 use File::Find;
+use File::Basename;
 use FindBin;
 
 my $video_root = "/var/www/stream_root/video";
-our @lists = ();
+my @lists = ();
 
 find(\&process, "${video_root}");
 
@@ -32,15 +33,15 @@ sub process {
     if($File::Find::name =~ /^.+\/(\d{8})\/(\d{2})$/) {
         my $date = $1;
         my $hour = $2;
+        my $dir  = $File::Find::name;
 
-        my %data = &get_playlist("${hour}/playlist.m3u8");
-        print $date . '/' . $hour . ": " . %data . ' add ';
+        my %data = &get_playlist("${dir}/playlist.m3u8");
 
         my $add_item = 0;
-        my @files = glob "${hour}/*.ts";
+        my @files = glob "${dir}/*.ts";
         for (@files) {
             my $target_file = $_;
-            my $tsfile = substr($target_file, 3);
+            my $tsfile = basename($target_file);
             next if exists($data{$tsfile});
             my $duration = `ffprobe -hide_banner -loglevel quiet -show_entries format=duration ${target_file}`;
             if($duration =~ /duration=(\d+\.\d+)/) {
@@ -51,8 +52,7 @@ sub process {
         if($add_item) {
             my $max_duration = 0;
             for my $dur(values %data) {
-                next if $dur < $max_duration;
-                $max_duration = $dur;
+                $max_duration = $dur if $dur > $max_duration;
             }
             $max_duration = int($max_duration);
             my $playlist = "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:${max_duration}\n";
@@ -60,14 +60,14 @@ sub process {
                 $playlist .= "#EXTINF:${data{$key}},\n${key}\n";
             }
             $playlist .= "#EXT-X-ENDLIST\n";
-            open(DATAFILE, "> ${hour}/playlist.m3u8") or die qw/Can't open file "playlist.m3u8": $!/;
+            open(DATAFILE, "> ${dir}/playlist.m3u8") or die qw/Can't open file "playlist.m3u8": $!/;
             print DATAFILE $playlist;
             close(DATAFILE);
         }
-        print $add_item . "\n";
 
-        unless(-f "${hour}/thumb.jpg") {
-            system "ffmpeg -hide_banner -loglevel quiet -i ${files[0]} -ss 0 -vframes 1 -f image2 -s 160x120 ${hour}/thumb.jpg";
+        unless(-f "${dir}/thumb.jpg") {
+            system "ffmpeg -hide_banner -loglevel quiet -i ${files[0]} -ss 0 -vframes 1 -f image2 -s 160x120 ${dir}/thumb.jpg";
+            # system "ffmpeg -hide_banner -loglevel quiet -i ${files[0]} -an -qmin 1 -q 1 -vf select='eq(pict_type\,I)',scale=160:-1 -vframes 1 -vsync 0 ${dir}/thumb.jpg"
         }
 
         my %item = (path => "${date}/${hour}/playlist.m3u8", thumb => "${date}/${hour}/thumb.jpg");
