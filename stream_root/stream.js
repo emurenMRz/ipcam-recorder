@@ -56,14 +56,25 @@
 	now.click();
 
 	(function updateRecord() {
-		var xhr = new XMLHttpRequest();
-		xhr.addEventListener('load', function () {
-			if (xhr.readyState == 4 && xhr.status == 200)
-				buildRecord(JSON.parse(xhr.responseText));
-		});
-		xhr.open('GET', 'video/record.json?' + (new Date()).getTime());
-		xhr.send(null);
-		setTimeout(updateRecord, 60000);
+		fetch('video/record.json?' + (new Date()).getTime())
+			.then(function (response) {
+				if (!response.ok) return;
+				return response.text();
+			})
+			.then(function (text) {
+				if (!text) return;
+				try {
+					buildRecord(JSON.parse(text));
+				} catch (e) {
+					// 破損JSONは再試行待ち
+				}
+			})
+			.catch(function () {
+				// ネットワークエラーは再試行待ち
+			})
+			.finally(function () {
+				setTimeout(updateRecord, 60000);
+			});
 	})();
 
 })();
