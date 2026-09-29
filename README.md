@@ -89,4 +89,14 @@ $ chmod 700 ${REPOSITORY_ROOT}/core_service/stream.pl
 
 ```crontab
 */1 * * * * ${REPOSITORY_ROOT}/core_service/stream.pl
+0 * * * * ${REPOSITORY_ROOT}/core_service/remove.pl
 ```
+
+## MOTION DETECTION CLEANUP
+
+`remove.pl` は毎時実行され、24時間以上経過した1時間ディレクトリ（`YYYYMMDD/HH/`）について、ffmpeg のシーン検知で動体が検出されなければディレクトリごと削除する。
+
+- 動体検知: ディレクトリ内のTSを15秒間隔でサンプリング（最大240本）し、シーン変更を検知
+- 検知済みディレクトリは `.scdet_done` マーカーで管理され、再実行しない
+- 削除ログは `/var/www/stream_root/video/.deleted.log` に記録
+- 並行実行は `/var/www/stream_root/video/.remove.lock` の `flock` で防止
