@@ -66,7 +66,19 @@ sub process {
         }
 
         unless(-f "${dir}/thumb.jpg") {
-            system "ffmpeg -hide_banner -loglevel quiet -i ${files[0]} -an -qmin 1 -q 1 -vf select='eq(pict_type\,I)',scale=160:-1 -vframes 1 -vsync 0 ${dir}/thumb.jpg"
+            system(
+                'ffmpeg',
+                '-hide_banner',
+                '-loglevel', 'quiet',
+                '-i', $files[0],
+                '-an',
+                '-qmin', '1',
+                '-q', '1',
+                '-vf', "select='eq(pict_type,I)',scale=160:-1",
+                '-frames:v', '1',
+                '-update', '1',
+                "${dir}/thumb.jpg"
+            );
         }
 
         my %item = (path => "${date}/${hour}/playlist.m3u8", thumb => "${date}/${hour}/thumb.jpg");
