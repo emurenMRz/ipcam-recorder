@@ -41,6 +41,8 @@ sub is_old_enough {
 sub get_max_score {
     my ($file, $filter, $label) = @_;
     my $output = `ffmpeg -hide_banner -loglevel info -i "$file" -vf "$filter" -f null - 2>&1`;
+    my $status = $?;
+    return undef if $status == -1 || ($status & 127) || ($status >> 8) != 0;
 
     my $max = 0;
 
@@ -92,6 +94,7 @@ sub detect_motion {
 
     for my $file (@samples) {
         my $score = get_max_score($file, $filter, $label);
+        return undef unless defined $score;
 
         # 早期終了: 動体検出があれば即 1
         return 1 if $score > $threshold;
