@@ -37,6 +37,22 @@ sub is_old_enough {
     return ($st[9] <= time() - 24 * 3600) ? 1 : 0;
 }
 
+# --- 最大スコアの取得 ---
+sub get_max_score {
+    my ($file, $filter, $label) = @_;
+    my $output = `ffmpeg -hide_banner -loglevel info -i "$file" -vf "$filter" -f null - 2>&1`;
+
+    my $max = 0;
+
+    # stderr 出力から指定ラベルを全件抽出
+    while ($output =~ /\Q$label\E=([0-9]+(?:\.[0-9]+)?)/g) {
+        my $score = $1 + 0;
+        $max = $score if $score > $max;
+    }
+
+    return $max;
+}
+
 # --- 動体検知: ディレクトリ内のTSを15秒間隔でサンプリング（240本）してシーン検知 ---
 # 戻り値: 0=動体なし / 1=動体あり / undef=エラー
 sub detect_motion {
@@ -62,26 +78,25 @@ sub detect_motion {
         push @samples, $files[$idx];
     }
 
-    my $max_score = 0;
+    my ($filter, $label, $threshold) = $use_scdet
+        ? (
+            'scdet=threshold=1.0,metadata=mode=print',
+            'lavfi.scd.score',
+            1.0
+          )
+        : (
+            "select='gt(scene,0.03)',metadata=mode=print",
+            'lavfi.scene_score',
+            0.03
+          );
+
     for my $file (@samples) {
-        my $output;
-        if($use_scdet) {
-            $output = `ffmpeg -hide_banner -loglevel info -i "${file}" -vf "scdet=s=8:threshold=1.0,metadata=mode=print" -f null - 2>&1`;
-        } else {
-            $output = `ffmpeg -hide_banner -loglevel info -i "${file}" -vf "select='gt(scene,0.3)',metadata=mode=print" -f null - 2>&1`;
-        }
-        # stderr 出力から scene_score を全件抽出
-        while($output =~ /scene_score=([\d\.]+)/g) {
-            my $score = $1 + 0;
-            $max_score = $score if $score > $max_score;
-        }
+        my $score = get_max_score($file, $filter, $label);
+
         # 早期終了: 動体検出があれば即 1
-        if($use_scdet) {
-            return 1 if $max_score > 1.0;
-        } else {
-            return 1 if $max_score > 0.3;
-        }
+        return 1 if $score > $threshold;
     }
+
     return 0;
 }
 
