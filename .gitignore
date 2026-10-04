@@ -175,5 +175,8 @@ stream_root/video/**/*.ts
 stream_root/video/**/*.m3u8
 stream_root/video/**/*.jpg
 stream_root/video/record.json
+stream_root/video/record.json.tmp
+stream_root/status.json
+stream_root/status.json.tmp
 *.pid
 ffmpeg.log

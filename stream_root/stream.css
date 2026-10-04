@@ -2,6 +2,31 @@
 	display: block;
 	margin: 0 auto;
 }
+#status {
+	box-sizing: border-box;
+	max-width: 640px;
+	margin: 1em auto;
+	padding: 0.4em 0.8em;
+	border: 1px solid silver;
+	border-radius: 4px;
+	color: #222;
+	font-size: 0.9em;
+}
+#status.status-ok {
+	border-color: #2e7d32;
+	background: #edf7ee;
+}
+#status.status-warn {
+	border-color: #b26a00;
+	background: #fff4e0;
+}
+#status.status-error {
+	border-color: #c62828;
+	background: #fdecea;
+}
+#status-detail div {
+	margin-top: 0.3em;
+}
 #now-stream {
 	border: 1px solid silver;
 	border-radius: 4px;

@@ -87,12 +87,15 @@ $ sudo /etc/init.d/nginx start
 ## RECORDING HISTORY
 
 ```sh
+$ chmod 700 ${REPOSITORY_ROOT}/core_service/remove.pl
+$ chmod 700 ${REPOSITORY_ROOT}/core_service/status.pl
 $ chmod 700 ${REPOSITORY_ROOT}/core_service/stream.pl
 ```
 
 ```crontab
-*/1 * * * * ${REPOSITORY_ROOT}/core_service/stream.pl
 0 * * * * ${REPOSITORY_ROOT}/core_service/remove.pl
+* * * * * ${REPOSITORY_ROOT}/core_service/status.pl
+* * * * * ${REPOSITORY_ROOT}/core_service/stream.pl
 ```
 
 ## MOTION DETECTION CLEANUP
@@ -103,3 +106,29 @@ $ chmod 700 ${REPOSITORY_ROOT}/core_service/stream.pl
 - 検知済みディレクトリは `.scdet_done` マーカーで管理され、再実行しない
 - 削除ログは `/var/www/stream_root/video/.deleted.log` に記録
 - 並行実行は `/var/www/stream_root/video/.remove.lock` の `flock` で防止
+
+## STATUS MONITORING
+
+ストレージの空き容量と ffmpeg の動作状況を画面に表示する。**容量不足でも、自動削除・ffmpeg の自動再起動は行わない**。気づけるようにするだけで、対処は人が行う。
+
+- `status.pl` が毎分 `/var/www/stream_root/status.json` を書き出す（一時ファイルへ書いてから `rename`。ディスクが満杯で書けない場合は直前の内容が残る）。
+- `status.json` は nginx から `/status.json` として配信される（キャッシュ無効）。
+- `index.html`（`stream.js`）が1分間隔のポーリングで `status.json` を取得して表示する。判定の閾値は `stream.js` の先頭にある。
+
+```json
+{
+  "version": 1,
+  "generated_at": 1759550000,
+  "disk": { "total_bytes": 0, "used_bytes": 0, "free_bytes": 0, "free_percent": 12.3 },
+  "ffmpeg": { "process_alive": true, "playlist_updated_at": 1759549998 }
+}
+```
+
+| 項目 | 意味 |
+| --- | --- |
+| `generated_at` | JSONの作成時刻（UNIX秒）。画面側でサーバのDateヘッダと比べ、古ければ「状態が更新されていない」と警告する |
+| `disk` | 録画先（`video/`）があるファイルシステムの容量。`free_percent` は一般ユーザーが使える容量に対する空きの割合 |
+| `ffmpeg.process_alive` | `${IPCAM_STATE_DIR}/ffmpeg.pid` のプロセスが ffmpeg か。PIDファイルが無ければ `null` |
+| `ffmpeg.playlist_updated_at` | ライブ用 `video/playlist.m3u8` の更新時刻。ffmpeg が止まる、または映像が来なくなると更新が止まる。ファイルが無ければ `null` |
+
+`status.pl` は `stream.sh` と同じ `IPCAM_STATE_DIR`（既定 `~/.local/state/ipcam-recorder`）を参照する。`stream.sh` を既定以外の `IPCAM_STATE_DIR` で起動している場合は、cron 側にも同じ環境変数を設定すること。

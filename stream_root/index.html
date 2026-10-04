@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
+  <meta charset="utf-8">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3"></script>
   <title>HTTP Live Streaming Test</title>
   <link rel="stylesheet" href="stream.css" type="text/css">
@@ -8,6 +9,10 @@
 </head>
 <body>
   <video id="video" src="video/playlist.m3u8" width="640" height="480" controls></video>
+  <div id="status" class="status-unknown">
+    <div id="status-summary">Retrieving status...</div>
+    <div id="status-detail" aria-live="polite"></div>
+  </div>
   <div id="now-stream">Current time</div>
   <dl id="record"></dl>
 </body>
