@@ -172,7 +172,8 @@ sub process {
 
 # --- メイン: flock で排他ロック取得 ---
 my $lock_file = "${video_root}/.remove.lock";
-open(LOCK, "+< ${lock_file}") or do {
+# 追記モードで開く(ファイルが無ければ作成される。内容は使わずflock専用)
+open(LOCK, ">> ${lock_file}") or do {
     print "WARN: can't open lock file ${lock_file}: $!\n";
     exit 1;
 };

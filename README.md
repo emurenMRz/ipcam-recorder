@@ -69,8 +69,9 @@ $ export IPCAM_PWD=[your IPCamera user password]
 $ sh ${REPOSITORY_ROOT}/core_service/stream.sh
 ```
 
-ffmpegのPIDは `/var/www/stream_root/video/ffmpeg.pid` に保存され、ログは `ffmpeg.log` へ出力される。
-再起動時は旧プロセスを安全に停止してから新規起動する。
+ffmpegのPIDとログは `${IPCAM_STATE_DIR}`（既定: `~/.local/state/ipcam-recorder`、パーミッション700）の `ffmpeg.pid` / `ffmpeg.log` に保存される。
+ログにはカメラの認証情報を含むURLが出力され得るため、Webから配信される `video/` 配下には置かない。
+再起動時は、PIDファイルのプロセスが ffmpeg であることを確認した上で停止してから新規起動する。
 
 ## SETUP WEB UI
 

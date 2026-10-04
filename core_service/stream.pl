@@ -4,6 +4,7 @@ use strict;
 use File::Find;
 use File::Basename;
 use FindBin;
+use JSON::PP;
 
 my $video_root = "/var/www/stream_root/video";
 my @lists = ();
@@ -86,28 +87,28 @@ sub process {
     }
 }
 
-# build JSON
-my $out = "[";
-my $now_date = -1;
-my $now_hour = -1;
+# build JSON (日付ごとにまとめ、日付・時間とも昇順で出力する。録画が無ければ "[]")
+my %by_date = ();
 for my $item (@lists) {
-    my $path = @{$item}{"path"};
-    my $thumb = @{$item}{"thumb"};
-    my $date = substr($path, 0, 8) + 0;
-    my $hour = substr($path, 9, 2) + 0;
-    if($date != $now_date) {
-        if($now_date >= 0) {$out .= "]},";}
-        $out .= "{\"date\":${date},\"hours\":[";
-        $now_date = $date;
-        $now_hour = -1;
-    }
-    if($now_hour >= 0) {$out .= ",";}
-    $out .= "{\"hour\":${hour},\"path\":\"${path}\",\"thumb\":\"${thumb}\"}";
-    $now_hour = $hour;
+    next unless $item->{path} =~ m{^(\d{8})/(\d{2})/};
+    my ($date, $hour) = ($1 + 0, $2 + 0);
+    push @{ $by_date{$date} }, {
+        hour  => $hour,
+        path  => $item->{path},
+        thumb => $item->{thumb},
+    };
 }
-$out .= "]}]";
+my @records = ();
+for my $date (sort { $a <=> $b } keys %by_date) {
+    my @hours = sort { $a->{hour} <=> $b->{hour} } @{ $by_date{$date} };
+    push @records, { date => $date + 0, hours => \@hours };
+}
+my $out = JSON::PP->new->canonical->encode(\@records);
 
-# output
-open(JSONFILE, "> ${video_root}/record.json") or die qw/Can't open file "record.json": $!/;
-print JSONFILE $out;
-close(JSONFILE);
+# output (一時ファイルに書いてからrenameし、書き込み途中のJSONが配信されないようにする)
+my $json_file = "${video_root}/record.json";
+my $json_tmp  = "${json_file}.tmp";
+open(my $jsonfh, '>', $json_tmp) or die "Can't open file \"${json_tmp}\": $!";
+print $jsonfh $out;
+close($jsonfh) or die "Can't write file \"${json_tmp}\": $!";
+rename($json_tmp, $json_file) or die "Can't rename \"${json_tmp}\" to \"${json_file}\": $!";
